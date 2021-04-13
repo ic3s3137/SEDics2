@@ -1,0 +1,17 @@
+[small]
+admin
+Admin
+administrator
+manage
+guanli
+ceshi
+test
+root
+
+[medium]
+manager
+system
+guest
+
+[big]
+admini
