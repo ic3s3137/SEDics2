@@ -52,10 +52,10 @@ func ruleMode(_ fyne.Window) fyne.CanvasObject {
 	specialShow := container.NewVBox()
 	totalShow := container.NewVBox()
 	showTabs := widget.NewTabContainer(
-		widget.NewTabItem("total",container.NewVScroll(totalShow)),
-		widget.NewTabItem("string",container.NewVScroll(stringShow)),
-		widget.NewTabItem("number",container.NewVScroll(numberShow)),
-		widget.NewTabItem("special",container.NewVScroll(specialShow)),
+		widget.NewTabItem("total",container.NewHScroll(container.NewVScroll(totalShow))),
+		widget.NewTabItem("string",container.NewHScroll(container.NewVScroll(stringShow))),
+		widget.NewTabItem("number",container.NewHScroll(container.NewVScroll(numberShow))),
+		widget.NewTabItem("special",container.NewHScroll(container.NewVScroll(specialShow))),
 	)
 	ruleShow := makeRuleList()
 	seString := widget.NewEntry()
