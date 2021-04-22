@@ -1,7 +1,6 @@
 [small]
 admin
 Admin
-administrator
 manage
 guanli
 ceshi
@@ -9,6 +8,7 @@ test
 root
 
 [medium]
+administrator
 manager
 system
 guest

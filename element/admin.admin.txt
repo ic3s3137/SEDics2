@@ -1,0 +1,13 @@
+[small]
+admin
+Admin
+system
+administrator
+manage
+guanli
+houtai
+ht
+gl
+[medium]
+Administrator
+admini

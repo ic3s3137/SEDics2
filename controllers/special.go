@@ -1,85 +1,92 @@
 package controllers
 
-import "strings"
+import (
+	"github.com/go-ego/gse"
+	"github.com/go-ego/gse/hmm/pos"
+	"github.com/mozillazg/go-pinyin"
+	"strings"
+)
 
-func makeDomainElems(input []string)map[string]struct{}{
-	var list = make(map[string]struct{})
-	for _,e := range input{
-		//type1
-		list[e] = struct{}{}
-		//type2
-		field := strings.Split(e,".")
-		for _,s := range field[:len(field)-1]{
-			list[s] = struct{}{}
-		}
-		//type3
-		list[strings.ReplaceAll(e,".","_")] = struct{}{}
-		//list[strings.ReplaceAll(e,".","-")] = struct{}{}
-		list[strings.ReplaceAll(e,".","")] = struct{}{}
-		list[field[len(field)-2]+"."+field[len(field)-1]] = struct{}{}
-		list[field[len(field)-2]+field[len(field)-1]] = struct{}{}
-		list[field[len(field)-2]+"_"+field[len(field)-1]] = struct{}{}
-		if len(field) > 2{
-			list[field[len(field)-3]+"."+field[len(field)-2]] = struct{}{}
-			list[field[len(field)-3]+field[len(field)-2]] = struct{}{}
-			list[field[len(field)-3]+"_"+field[len(field)-2]] = struct{}{}
-		}
-	}
-	return list
+var (
+	seg    gse.Segmenter
+	posSeg pos.Segmenter
+)
+
+type MPinyin struct {
+	First      []string
+	PinyinList []string
+	Pinyin     string
+	IsName     bool
+	Flag       string
+	py         pinyin.Args
+	Num        int
 }
 
-func makePinyinElems(elename string,seString []string)map[string]struct{}{
-	//var list = make(map[string]struct{})
-	var tmplist  = make(map[string]struct{})
-	for _,seStr := range seString {
-		tmplist[strings.ToUpper(seStr[0:1])+seStr[1:]] = struct{}{}
-		tmplist[strings.ToUpper(seStr[0:1])+strings.ToLower(seStr[1:])] = struct{}{}
-		tmplist[strings.ToLower(seStr)] = struct{}{}
-		var (
-			pinyinFirst []string
-			pinyin      []string
-			flag        string
-			num         int
-		)
-		for i, _ := range seStr {
-			n := seStr[i : i+1]
-			if n == strings.ToUpper(n) {
-				if flag != "" {
-					pinyinFirst = append(pinyinFirst, flag)
-					pinyin = append(pinyin, seStr[num:i])
-					num = i
-				}
-				flag = n
-			}
-			if i == len(seStr)-1 && flag != "" {
-				pinyinFirst = append(pinyinFirst, flag)
-				pinyin = append(pinyin, seStr[num:i+1])
-			}
+func (p *MPinyin) Init(hans string, ChineseType []gse.SegPos) {
+	p.py = pinyin.NewArgs()
+	for _, w := range pinyin.Pinyin(hans, p.py) {
+		p.PinyinList = append(p.PinyinList, w[0])
+		//p.PinyinList = append(p.PyinyinList)
+	}
+	for _, w := range p.PinyinList {
+		p.First = append(p.First, string(w[0]))
+		p.Pinyin = p.Pinyin + w
+	}
+	for _, i := range ChineseType {
+		if i.Pos == "nr" && i.Text == hans {
+			p.IsName = true
 		}
-		if len(pinyinFirst) != 0 {
+	}
+}
+
+func makePinyinElems(input []string) map[string]struct{} {
+	var tmplist = make(map[string]struct{})
+	seg.SkipLog = true
+	seg.LoadDict()
+	for _, i := range input {
+		ChineseList, ChineseType := cutPinyin(i)
+		if len(ChineseList) > 1 {
+			ChineseList = append(ChineseList, i)
+		}
+		for _, Hans := range ChineseList {
+			p := MPinyin{}
+			p.Init(Hans, ChineseType)
+			tmplist[strings.ToUpper(p.Pinyin[0:1])+p.Pinyin[1:]] = struct{}{}
+			tmplist[strings.ToUpper(p.Pinyin[0:1])+strings.ToLower(p.Pinyin[1:])] = struct{}{}
+			tmplist[strings.ToLower(p.Pinyin)] = struct{}{}
 			var t string
-			for _, k := range pinyinFirst {
+			for _, k := range p.First {
 				t = t + k
 			}
 			tmplist[t] = struct{}{}
 			tmplist[strings.ToUpper(t[0:1])+strings.ToLower(t[1:])] = struct{}{}
 			tmplist[strings.ToLower(t)] = struct{}{}
-			if elename == "Pinyin(name)"{
-				tmplist[pinyin[0]] = struct{}{}
-				tmplist[strings.ToLower(pinyin[0])] = struct{}{}
-				if len(pinyinFirst) == 2{
-					tmplist[pinyin[1]] = struct{}{}
-					tmplist[strings.ToLower(pinyin[1])] = struct{}{}
-				}else{
-					tmplist[pinyin[len(pinyin)-2]+pinyin[len(pinyin)-1]] = struct{}{}
-					tmplist[strings.ToLower(pinyin[len(pinyin)-2]+pinyin[len(pinyin)-1])] = struct{}{}
+			if p.IsName {
+				tmplist[p.PinyinList[0]] = struct{}{}
+				tmplist[strings.ToLower(p.PinyinList[0])] = struct{}{}
+				if len(p.First) == 2 {
+					tmplist[p.PinyinList[1]] = struct{}{}
+					tmplist[strings.ToLower(p.PinyinList[1])] = struct{}{}
+				} else {
+					tmplist[p.PinyinList[len(p.PinyinList)-2]+p.PinyinList[len(p.PinyinList)-1]] = struct{}{}
+					tmplist[strings.ToLower(p.PinyinList[len(p.PinyinList)-2]+p.PinyinList[len(p.PinyinList)-1])] = struct{}{}
 				}
 			}
 
 		}
 	}
-	for k := range tmplist {
-		tmplist[k] = struct{}{}
-	}
 	return tmplist
+}
+func makeTempElems(input []string) map[string]struct{} {
+	var news = make(map[string]struct{})
+	for _, v := range strings.Split(input[0], "|") {
+		news[v] = struct{}{}
+	}
+	return news
+}
+func cutPinyin(text string) ([]string, []gse.SegPos) {
+	hmm := seg.Cut(text, true)
+	posSeg.WithGse(seg)
+	po := posSeg.Cut(text, true)
+	return hmm, po
 }

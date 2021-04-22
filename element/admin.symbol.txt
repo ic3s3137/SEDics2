@@ -1,0 +1,7 @@
+[small]
+@
+_
+[medium]
+
+[big]
+-
