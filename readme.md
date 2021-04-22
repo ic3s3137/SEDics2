@@ -15,20 +15,28 @@ SEDics2是一款通过社工信息的元素来生成爆破字典的工具。前�
 ### usage ###
 
   -L	show rule list
-  -l int
+  
+  -l 
     	dictionary length level:1,2,3 (default 1)
-  -n string
+    	
+  -n 
     	number type element
-  -o string
+    	
+  -o 
     	saved path
-  -p string
+    	
+  -p 
     	Pinyin
-  -r string
+    	
+  -r 
     	rule file
-  -s string
+    	
+  -s 
     	string type element
-  -t string
+    	
+  -t 
     	temp variables
+    	
 
 
 
